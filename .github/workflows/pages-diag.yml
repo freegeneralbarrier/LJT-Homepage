@@ -4,9 +4,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
-  pages: write
-  id-token: write
+  contents: read
 
 jobs:
   diag:
@@ -20,7 +18,7 @@ jobs:
           set +e
           echo "=== whoami ==="
           gh api user --jq .login
-          echo "=== repo workflow permissions setting ==="
+          echo "=== GET repo workflow permissions setting ==="
           gh api /repos/${{ github.repository }}/actions/permissions/workflow
           echo "=== GET pages site ==="
           gh api /repos/${{ github.repository }}/pages
