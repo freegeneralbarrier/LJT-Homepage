@@ -1,0 +1,33 @@
+name: Pages Token Diagnostics
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Probe GITHUB_TOKEN capabilities
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set +e
+          echo "=== whoami ==="
+          gh api user --jq .login
+          echo "=== repo workflow permissions setting ==="
+          gh api /repos/${{ github.repository }}/actions/permissions/workflow
+          echo "=== GET pages site ==="
+          gh api /repos/${{ github.repository }}/pages
+          echo "=== POST pages site (create, build_type=workflow) ==="
+          gh api -X POST /repos/${{ github.repository }}/pages -f build_type=workflow
+          echo "=== POST git ref (contents write test) ==="
+          gh api -X POST /repos/${{ github.repository }}/git/refs -f ref=refs/heads/token-test-delete-me -f sha=${{ github.sha }}
+          echo "=== cleanup test ref ==="
+          gh api -X DELETE /repos/${{ github.repository }}/git/refs/heads/token-test-delete-me
+          echo "=== ALL DONE ==="
